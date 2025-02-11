@@ -63,9 +63,9 @@ jobs:
       - name: Save branch name as env var
         run: |
           echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
-          echo Helm Version: ${matrix.helm}
-          echo Kubectl Version: ${matrix.kubectl}
-          echo AWS Version: ${matrix.aws-cli}
+          echo Helm Version: ${{matrix.helm}}
+          echo Kubectl Version: ${{matrix.kubectl}}
+          echo AWS Version: ${{matrix.aws-cli}}
 
       # - name: Build and save image tag
       #   run: echo "IMAGE_TAG=${BRANCH}_terraform-${{ matrix.tf_versions }}_awscli-${{ matrix.awscli_versions }}" >> $GITHUB_ENV
