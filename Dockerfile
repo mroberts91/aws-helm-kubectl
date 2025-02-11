@@ -1,13 +1,13 @@
 # Setup build arguments
+ARG HELM_VERSION
+ARG KUBECTL_VERSION
 ARG AWS_CLI_VERSION
-ARG TERRAFORM_VERSION
 ARG DEBIAN_VERSION=bookworm-20231120-slim
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Download Terraform binary
-FROM debian:${DEBIAN_VERSION} AS terraform
+FROM debian:${DEBIAN_VERSION} AS helm
 ARG TARGETARCH
-ARG TERRAFORM_VERSION
+ARG HELM_VERSION
 RUN apt-get update
 # RUN apt-get install --no-install-recommends -y libcurl4=7.74.0-1.3+deb11u7
 RUN apt-get install --no-install-recommends -y ca-certificates=20230311
@@ -16,13 +16,25 @@ RUN apt-get install --no-install-recommends -y gnupg=2.2.40-1.1
 RUN apt-get install --no-install-recommends -y unzip=6.0-28
 RUN rm -rf /var/lib/apt/lists/*
 WORKDIR /workspace
-RUN curl --silent --show-error --fail --remote-name https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${TARGETARCH}.zip
-COPY security/hashicorp.asc ./
-COPY security/terraform_${TERRAFORM_VERSION}** ./
-RUN gpg --import hashicorp.asc
-RUN gpg --verify terraform_${TERRAFORM_VERSION}_SHA256SUMS.sig terraform_${TERRAFORM_VERSION}_SHA256SUMS
-RUN sha256sum --check --strict --ignore-missing terraform_${TERRAFORM_VERSION}_SHA256SUMS
-RUN unzip -j terraform_${TERRAFORM_VERSION}_linux_${TARGETARCH}.zip
+RUN curl --silent --show-error --fail -o get_helm.sh --remote-name https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+RUN chmod 700 get_helm.sh
+RUN ./get_helm.sh --version ${HELM_VERSION}
+
+FROM debian:${DEBIAN_VERSION} AS kubectl
+ARG TARGETARCH
+ARG KUBECTL_VERSION
+RUN apt-get update && apt-get install -y \
+    curl \
+    apt-transport-https \
+    ca-certificates \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+RUN curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl"
+RUN curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl.sha256"
+RUN echo "$(cat kubectl.sha256) kubectl" | sha256sum --check
+RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+RUN rm kubectl kubectl.sha256
+RUN kubectl version --client
 
 # Install AWS CLI version 2
 FROM debian:${DEBIAN_VERSION} AS aws-cli
@@ -37,10 +49,6 @@ RUN apt-get install -y --no-install-recommends jq=1.6-2.1
 RUN rm -rf /var/lib/apt/lists/*
 WORKDIR /workspace
 RUN curl --show-error --fail --output "awscliv2.zip" --remote-name "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VERSION}.zip"
-COPY security/awscliv2.asc ./
-COPY security/awscli-exe-linux-x86_64-${AWS_CLI_VERSION}.zip.sig ./awscliv2.sig
-RUN gpg --import awscliv2.asc
-RUN gpg --verify awscliv2.sig awscliv2.zip
 RUN unzip -u awscliv2.zip
 RUN ./aws/install --install-dir /usr/local/aws-cli --bin-dir /usr/local/bin
 
@@ -55,7 +63,8 @@ RUN apt-get install -y --no-install-recommends openssh-client=1:9.2p1-2+deb12u3
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/*
 WORKDIR /workspace
-COPY --from=terraform /workspace/terraform /usr/local/bin/terraform
+COPY --from=helm /usr/local/bin/helm /usr/local/bin/helm
+COPY --from=kubectl /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=aws-cli /usr/local/bin/ /usr/local/bin/
 COPY --from=aws-cli /usr/local/aws-cli /usr/local/aws-cli
 
