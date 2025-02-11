@@ -1,0 +1,3 @@
+ignored:
+  - DL3059 # Ignore https://github.com/hadolint/hadolint/wiki/DL3059, specific to build stages
+  - DL3009 # Ignore https://github.com/hadolint/hadolint/wiki/DL3009, this is happening just not after every install
