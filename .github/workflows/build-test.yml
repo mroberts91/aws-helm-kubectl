@@ -87,7 +87,7 @@ jobs:
           build-args: |
             HELM_VERSION=${{ matrix.helm }}
             KUBECTL_VERSION=${{ matrix.kubectl }}
-            AWS_CLI_VERSION=${{ matrix.awscli_versions }}
+            AWS_CLI_VERSION=${{ matrix.aws-cli }}
           tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           push: false
           load: true
@@ -102,7 +102,7 @@ jobs:
           build-args: |
             HELM_VERSION=${{ matrix.helm }}
             KUBECTL_VERSION=${{ matrix.kubectl }}
-            AWS_CLI_VERSION=${{ matrix.awscli_versions }}
+            AWS_CLI_VERSION=${{ matrix.aws-cli }}
           tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           push: false
           cache-from: type=gha

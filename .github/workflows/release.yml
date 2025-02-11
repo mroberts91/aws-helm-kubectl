@@ -59,7 +59,7 @@ jobs:
           build-args: |
             HELM_VERSION=${{ matrix.helm }}
             KUBECTL_VERSION=${{ matrix.kubectl }}
-            AWS_CLI_VERSION=${{ matrix.awscli_versions }}
+            AWS_CLI_VERSION=${{ matrix.aws-cli }}
           tags: mroberts91/aws-helm-kubectl:release_aws-${{ matrix.aws-cli }}_helm-${{ matrix.helm }}_kubectl-${{ matrix.kubectl }}
           push: true
           cache-from: type=gha
