@@ -36,7 +36,11 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Get and save the release tag
-        run: echo "RELEASE_TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+        run: |
+          echo "RELEASE_TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo Helm Version: ${matrix.helm}
+          echo Kubectl Version: ${matrix.kubectl}
+          echo AWS Version: ${matrix.aws-cli}
 
       # - name: Login to Docker Hub registry
       #   run: echo '${{ secrets.DOCKERHUB_PAT }}' | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
